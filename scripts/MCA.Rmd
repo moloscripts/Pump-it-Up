@@ -1,0 +1,85 @@
+---
+title: ''
+author: "Molo Muli"
+tags:
+- R
+- Multiple Correspondence Analyisis
+- Data Analyis
+output:
+  html_document:
+    df_print: paged
+---
+
+#### Data Mining Water Table : Multiple Correspondence Analysis of Tanzania Water Sources
+
+##### Background Information
+I came across this dataset through a project hosted by [Driven Data](https://www.drivendata.org). Their goal, together with [Taarifa](http://taarifa.org/) and [The Minsitry of Water Tanzania](https://www.maji.go.tz/), is to come up with a model that can be able to predict which water pumps are functional and which ones are not. The target variable has three classes: functional, partially functional and non-functional. Of the end result is for the ministry to understand which waterpoints are vulnerable of failing so that they imporove on maintenance and water service delivery to the people of Tanzania. More information about the project can be found [here](https://www.drivendata.org/competitions/7/pump-it-up-data-mining-the-water-table/page/23/).
+
+##### Introduction 
+Multiple Correspondence Analysis (MCA) is a data science technique used to explore and analyse patterns of several qualitative (or categorical) nominal variables. It can range from generating contigency tables that show association between two variables to visualisation of more than two categorical variables on both symetric and/or assymetric maps. 
+Symetric and asymetric maps are generated on a multidimensional Euclidean space. Patterns and results gathered from the maps are intepreted based on the relative positions of the points along the dimensions of the map. if the distance between two variables are closer on the space, then the stronger the relationship or similarities.
+
+##### Datasets
+Datasets provided for the project are three, training set, testing set and functionality status id. However, for this particular case I'll use the training set and the functionality id data to do MCA.
+
+Load the dataset and the libraries to your R workspace
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# Libraries
+library(easypackages)
+libraries("tidyverse","DataExplorer", "funModeling", "corrplot", "lubridate","inspectdf","FactoMineR", "ExPosition")
+
+# Datasets
+training_set <- read.csv("../data/training_set_values.csv", na.strings=c(""," ","NA"))
+functionality_status_id <- read.csv("../data/id_functionality_status_training.csv", na.strings=c(""," ","NA"))
+```
+Both datasets have a common identifer. I'll use the `merge()` function to merge them into one
+```{r echo=TRUE, warning=FALSE}
+TzWaterPoints <- merge(training_set, functionality_status_id, by.x = "id", by.y = "id", all.x =TRUE)
+
+# Dimensions of the Data
+dim(TzWaterPoints)
+```
+
+##### EDA
+`functionality_status_id` dataframe has a column named "status_group". This target column contains three levels of functionality. 
+
+* Functional -> (1), 
+* Functional Needs repair ->(2), 
+* Non-Functional ->(3).
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# Convert status_group to factor
+TzWaterPoints$status_group <- as.factor(TzWaterPoints$status_group)
+TzWaterPoints$construction_year <- as.factor(TzWaterPoints$construction_year)
+
+# Inspect varioous data types in the Data Frame
+inspect_types(TzWaterPoints) %>%
+  show_plot()
+```
+
+Since categorical variables consititute the most classes in the dataframe, I selected a subset of columns because some of them had repetitive observations. For example, columns 'extraction_type', 'extraction_type_group' and 'extraction_type_class'  had more or less the same observations.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# Subset the DF with only selected categorical variables
+TzWp_Cat <- TzWaterPoints %>%
+  select(basin, region, construction_year,scheme_management,permit,public_meeting,extraction_type_class,management_group,payment_type, quality_group,
+         waterpoint_type_group,source_type, source_class,waterpoint_type_group, status_group)
+
+inspect_types(TzWp_Cat) %>%
+  show_plot()
+
+
+# inspect the categorical Variables
+# inspect_cat(TzWp_Cat) %>%
+#   show_plot()
+```
+
+
+From the above plot, one gets a glimpse of various observarions per variable. e.g. Region is thecolumn with very many levels and water quality is good on most water sources. 
+
+####MCA
+packages used for MCA are `FactoMineR` and 
+
+
+
